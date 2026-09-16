@@ -107,6 +107,7 @@ body{background:var(--bg);color:var(--tx);font-family:'Inter',sans-serif;font-si
 </style>
 </head>
 <body>
+<a href="https://omarenriqueibarra.github.io/panel-mantenimiento/" style="position:fixed;bottom:16px;left:16px;z-index:9999;display:inline-flex;align-items:center;gap:6px;background:#1c1a17;color:#fff;text-decoration:none;font-family:Inter,sans-serif;font-size:13px;font-weight:700;padding:9px 14px;border-radius:9px;box-shadow:0 2px 10px rgba(0,0,0,.18);">← Tablero</a>
 
 <div class="hdr">
   <div class="hdr-left">
@@ -122,7 +123,6 @@ body{background:var(--bg);color:var(--tx);font-family:'Inter',sans-serif;font-si
   <button class="tab-btn-sup" id="btnSup" onclick="pedirPinSup()" style="margin-left:auto;background:none;border:1px solid #9070c0;color:#9070c0;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">🔒 Supervisor</button>
   <button class="tab-btn-sup" id="btnCerrarSup" onclick="cerrarSesionSup()" style="display:none;margin-left:auto;background:none;border:1px solid var(--rd);color:var(--rd);border-radius:7px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">🔓 Cerrar sesión</button>
 </div>
-<div style="padding:6px 20px;font-size:11px;color:var(--mu)" id="estadoSync">Conectando con la planilla...</div>
 
 <div class="pnl on" id="pnl0">
   <div class="mes-nav" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px">
@@ -182,21 +182,9 @@ var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzJbHLWDEUWngg2jt
 var TURNOS_RAW = []; // filas crudas tal cual vienen de la planilla
 
 function sincronizar(action, params){
-  try{
-    var payload = {action: action};
-    for(var k in params){ payload[k] = params[k]; }
-    fetch(APPS_SCRIPT_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(payload)})
-      .then(function(){ marcarSincronizado(true); })
-      .catch(function(err){ marcarSincronizado(false, err && err.message); });
-  }catch(err){
-    marcarSincronizado(false, 'Error antes de enviar: '+(err&&err.message));
-  }
-}
-function marcarSincronizado(ok, msg){
-  var el=document.getElementById('estadoSync');
-  if(!el) return;
-  el.textContent = ok ? '✓ Sincronizado '+new Date().toLocaleTimeString() : '⚠️ Error al sincronizar: '+(msg||'desconocido');
-  el.style.color = ok ? '#2e7d32' : '#c0392b';
+  var payload = Object.assign({action: action}, params);
+  fetch(APPS_SCRIPT_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(payload)})
+    .catch(function(err){ showToast('⚠️ No se pudo sincronizar con la planilla (sin conexión)'); });
 }
 
 function reconstruirEstadoDesdeSheet(){
@@ -230,11 +218,10 @@ function cargarDesdeSheet(callback){
     .then(function(data){
       TURNOS_RAW = data.turnos || [];
       reconstruirEstadoDesdeSheet();
-      marcarSincronizado(true);
       if(callback) callback();
     })
-    .catch(function(err){
-      marcarSincronizado(false, 'No se pudo conectar (GET): '+(err&&err.message));
+    .catch(function(){
+      showToast('⚠️ No se pudo conectar con la planilla — mostrando datos locales');
       if(callback) callback();
     });
 }
