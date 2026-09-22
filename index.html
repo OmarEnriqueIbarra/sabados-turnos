@@ -1405,6 +1405,16 @@ function renderHorasExtra(){
     '</tr>';
   }).join('');
 
+  var mesesTotales=[0,0,0,0,0,0,0,0,0,0,0,0];
+  HORAS_EXTRA.forEach(function(r){ r[2].forEach(function(h,i){ mesesTotales[i]+=h; }); });
+  var tdsTotales=mesesTotales.map(function(h){return '<td style="text-align:center;padding:6px 4px;font-size:11px;font-weight:800;font-family:\'Space Mono\',monospace;color:#fff">'+fmtHE(h)+'</td>';}).join('');
+  var footer='<tr style="background:var(--head)">'+
+    '<td colspan="2" style="padding:7px 8px;font-size:11px;font-weight:800;color:#fff">TOTAL POR MES</td>'+
+    tdsTotales+
+    '<td style="text-align:center;padding:7px 8px;font-size:12px;font-weight:800;font-family:\'Space Mono\',monospace;color:#fff">'+fmtHE(totalAnual)+'</td>'+
+    '<td colspan="3"></td>'+
+  '</tr>';
+
   var tabla='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">'+
     '<thead><tr style="background:var(--head)">'+
       '<th style="text-align:left;padding:6px 8px;font-size:10px;color:#fff">Legajo</th>'+
@@ -1414,7 +1424,7 @@ function renderHorasExtra(){
       '<th style="text-align:center;padding:6px 8px;font-size:10px;color:#fff">Máx.<br>mensual</th>'+
       '<th style="text-align:center;padding:6px 8px;font-size:10px;color:#fff">Disp.<br>año</th>'+
       '<th style="text-align:left;padding:6px 8px;font-size:10px;color:#fff">Estado</th>'+
-    '</tr></thead><tbody>'+rows+'</tbody></table></div>';
+    '</tr></thead><tbody>'+rows+'</tbody><tfoot>'+footer+'</tfoot></table></div>';
 
   body.innerHTML=barra+kpis+nota+tabla;
 }
